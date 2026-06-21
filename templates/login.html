@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="login-container">
+    <div class="login-box">
+        <div class="login-logo">🌸</div>
+        <div class="login-title">کلینیک زیبایی</div>
+        <div class="login-subtitle">برای ورود رمز عبور را وارد کنید</div>
+        
+        {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST">
+            <div class="input-group">
+                <input type="password" name="password" placeholder="رمز عبور" required autofocus>
+            </div>
+            <button type="submit" class="btn btn-primary">🔓 ورود</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
