@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="header" style="position: relative;">
+    <button class="back-btn" onclick="history.back()">‹</button>
+    <h1>{{ title }}</h1>
+    <div class="date">تعداد: {{ customers|length }} نفر</div>
+</div>
+
+<div class="container">
+    {% if customers %}
+        {% for c in customers %}
+        <div class="customer-card {% if c.next_appointment == today %}today{% elif c.next_appointment == tomorrow %}tomorrow{% endif %}">
+            <div class="customer-name">
+                {{ c.name }}
+                {% if c.next_appointment == today %}<span class="badge badge-today">امروز</span>{% endif %}
+                {% if c.next_appointment == tomorrow %}<span class="badge badge-tomorrow">فردا</span>{% endif %}
+            </div>
+            <div class="customer-info">📱 <a href="tel:{{ c.phone }}" style="color: #d946ef; text-decoration: none;">{{ c.phone }}</a></div>
+            <div class="customer-info">💉 {{ c.service }}</div>
+            {% if c.next_appointment %}
+            <div class="customer-info">📅 نوبت بعدی: {{ c.next_appointment }}</div>
+            {% endif %}
+            {% if c.notes %}
+            <div class="customer-info">📝 {{ c.notes }}</div>
+            {% endif %}
+            
+            <div class="customer-actions">
+                <a href="{{ url_for('edit_customer', customer_id=c.id) }}" style="background: linear-gradient(135deg, #f59e0b, #d97706);">✏️ ویرایش</a>
+                <form method="POST" action="{{ url_for('delete_customer', customer_id=c.id) }}" 
+                      style="flex: 1; margin: 0;" onsubmit="return confirm('آیا مطمئن هستید؟')">
+                    <button type="submit" style="background: linear-gradient(135deg, #ef4444, #dc2626); width: 100%;">❌ حذف</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="icon">📭</div>
+            <div>موردی یافت نشد</div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
