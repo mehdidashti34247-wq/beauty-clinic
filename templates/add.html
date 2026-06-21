@@ -29,17 +29,18 @@
                     <option>تزریق بوتاکس</option>
                     <option>تزریق ژل</option>
                     <option>لاغری</option>
+                    <option>آمپول لاغری</option>
                     <option>مزوتراپی</option>
                     <option>میکرونیدلینگ</option>
-                    <option>آمپول لاغری</option>
+                    <option>پاکسازی پوست</option>
                     <option>فیشیال</option>
                     <option>سایر</option>
                 </select>
             </div>
             
             <div class="input-group">
-                <label>📅 تاریخ نوبت بعدی (شمسی)</label>
-                <input type="text" name="next_appointment" placeholder="1403/12/15">
+                <label>📅 تاریخ نوبت بعدی</label>
+                <input type="text" name="next_appointment" id="datepicker-add" placeholder="روی این کادر کلیک کنید" readonly style="cursor: pointer; background: white;">
             </div>
             
             <div class="input-group">
@@ -52,4 +53,30 @@
         <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">❌ انصراف</a>
     </form>
 </div>
+
+<script>
+    $(document).ready(function() {
+        $("#datepicker-add").persianDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: false,
+            observer: true,
+            persianDigit: false,
+            toolbox: {
+                calendarSwitch: {
+                    enabled: false
+                }
+            },
+            navigator: {
+                scroll: {
+                    enabled: false
+                },
+                text: {
+                    btnNextText: '>',
+                    btnPrevText: '<'
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}
