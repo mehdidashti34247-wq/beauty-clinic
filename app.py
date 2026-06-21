@@ -16,8 +16,10 @@ PASSWORD = os.environ.get("APP_PASSWORD", "1234")
 # اتصال به MongoDB با تنظیمات SSL
 MONGO_URI = os.environ.get("MONGO_URI", "")
 client = MongoClient(
+   client = MongoClient(
     MONGO_URI,
-    tlsCAFile=certifi.where(),
+    tls=True,
+    tlsAllowInvalidCertificates=True,
     serverSelectionTimeoutMS=30000,
     connectTimeoutMS=30000,
     socketTimeoutMS=30000,
