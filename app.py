@@ -6,17 +6,15 @@ from openpyxl import Workbook
 from io import BytesIO
 from functools import wraps
 from pymongo import MongoClient
-import certifi
 
 app = Flask(__name__)
 app.secret_key = "beauty_clinic_secret_key_change_me_2024"
 
 PASSWORD = os.environ.get("APP_PASSWORD", "1234")
 
-# اتصال به MongoDB با تنظیمات SSL
+# اتصال به MongoDB
 MONGO_URI = os.environ.get("MONGO_URI", "")
 client = MongoClient(
-   client = MongoClient(
     MONGO_URI,
     tls=True,
     tlsAllowInvalidCertificates=True,
