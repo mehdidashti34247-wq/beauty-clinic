@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="header">
+    <h1>🌸 کلینیک زیبایی</h1>
+    <div class="date">📅 امروز: {{ today }}</div>
+</div>
+
+<div class="container">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="icon">👥</div>
+            <div class="value stat-pink">{{ total }}</div>
+            <div class="label">کل مشتریان</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">📅</div>
+            <div class="value stat-orange">{{ today_count }}</div>
+            <div class="label">نوبت امروز</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">⏰</div>
+            <div class="value stat-red">{{ tomorrow_count }}</div>
+            <div class="label">نوبت فردا</div>
+        </div>
+        <div class="stat-card">
+            <div class="icon">📊</div>
+            <div class="value stat-blue">{{ future_count }}</div>
+            <div class="label">نوبت‌های آینده</div>
+        </div>
+    </div>
+    
+    <a href="{{ url_for('add_customer') }}" class="btn btn-success">➕ افزودن مشتری جدید</a>
+    <a href="{{ url_for('today_appointments') }}" class="btn btn-warning">📅 نوبت‌های امروز</a>
+    <a href="{{ url_for('tomorrow_appointments') }}" class="btn btn-danger">📅 نوبت‌های فردا</a>
+    <a href="{{ url_for('all_appointments') }}" class="btn btn-info">⏰ همه نوبت‌های آینده</a>
+    <a href="{{ url_for('export_excel') }}" class="btn btn-primary">📊 خروجی Excel</a>
+    <a href="{{ url_for('logout') }}" class="btn btn-secondary">🚪 خروج</a>
+    
+    {% if today_customers %}
+    <div class="page-title" style="margin-top: 25px;">📋 نوبت‌های امروز</div>
+    {% for c in today_customers %}
+    <div class="customer-card today">
+        <div class="customer-name">{{ c.name }}</div>
+        <div class="customer-info">📱 <a href="tel:{{ c.phone }}" style="color: #d946ef; text-decoration: none;">{{ c.phone }}</a></div>
+        <div class="customer-info">💉 {{ c.service }}</div>
+    </div>
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}
