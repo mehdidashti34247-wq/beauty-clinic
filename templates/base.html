@@ -65,6 +65,21 @@
         .login-title { font-size: 22px; font-weight: bold; color: #d946ef; margin-bottom: 5px; }
         .login-subtitle { font-size: 13px; color: #6b7280; margin-bottom: 30px; }
     </style>
+    
+    <!-- تقویم شمسی -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css"/>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+    <style>
+        .datepicker-plot-area {
+            font-family: 'Tahoma', sans-serif !important;
+            z-index: 9999 !important;
+        }
+        .datepicker-day-view .table-days td span {
+            font-size: 14px !important;
+        }
+    </style>
 </head>
 <body>
     {% block content %}{% endblock %}
