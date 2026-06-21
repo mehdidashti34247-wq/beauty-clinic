@@ -1,40 +1,39 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_file
 from datetime import datetime, timedelta
-import json
 import os
 import jdatetime
 from openpyxl import Workbook
 from io import BytesIO
 from functools import wraps
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 
 app = Flask(__name__)
 app.secret_key = "beauty_clinic_secret_key_change_me_2024"
 
-PASSWORD = "12344321"
+PASSWORD = os.environ.get("APP_PASSWORD", "1234")
 
-DB_FILE = "clinic_database.json"
+# اتصال به MongoDB
+MONGO_URI = os.environ.get("MONGO_URI", "")
+client = MongoClient(MONGO_URI)
+db = client.clinic
+customers_collection = db.customers
 
-
-def load_db():
-    if os.path.exists(DB_FILE):
-        with open(DB_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {"customers": []}
-
-def save_db(db):
-    with open(DB_FILE, "w", encoding="utf-8") as f:
-        json.dump(db, f, ensure_ascii=False, indent=2)
-
-def generate_id(db):
-    if not db["customers"]:
-        return 1
-    return max(c["id"] for c in db["customers"]) + 1
 
 def get_today_shamsi():
     return jdatetime.date.today().strftime("%Y/%m/%d")
 
 def get_tomorrow_shamsi():
     return (jdatetime.date.today() + timedelta(days=1)).strftime("%Y/%m/%d")
+
+def generate_id():
+    last = customers_collection.find_one(sort=[("id", -1)])
+    if last:
+        return last["id"] + 1
+    return 1
+
+def get_all_customers():
+    return list(customers_collection.find({}, {"_id": 0}))
 
 def login_required(f):
     @wraps(f)
@@ -66,14 +65,14 @@ def logout():
 @app.route("/")
 @login_required
 def dashboard():
-    db = load_db()
+    customers = get_all_customers()
     today = get_today_shamsi()
     tomorrow = get_tomorrow_shamsi()
     
-    total = len(db["customers"])
-    today_customers = [c for c in db["customers"] if c.get("next_appointment") == today]
-    tomorrow_customers = [c for c in db["customers"] if c.get("next_appointment") == tomorrow]
-    future_count = len([c for c in db["customers"] 
+    total = len(customers)
+    today_customers = [c for c in customers if c.get("next_appointment") == today]
+    tomorrow_customers = [c for c in customers if c.get("next_appointment") == tomorrow]
+    future_count = len([c for c in customers 
                        if c.get("next_appointment") and c["next_appointment"] > today])
     
     return render_template("dashboard.html",
@@ -110,9 +109,8 @@ def add_customer():
             except:
                 return render_template("add.html", error="فرمت تاریخ نادرست است! مثال: 1403/12/15")
         
-        db = load_db()
         customer = {
-            "id": generate_id(db),
+            "id": generate_id(),
             "name": name,
             "phone": phone,
             "service": service,
@@ -120,8 +118,7 @@ def add_customer():
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
             "notes": notes
         }
-        db["customers"].append(customer)
-        save_db(db)
+        customers_collection.insert_one(customer)
         
         return redirect(url_for("customers_list"))
     
@@ -131,8 +128,7 @@ def add_customer():
 @app.route("/customers")
 @login_required
 def customers_list():
-    db = load_db()
-    customers = db["customers"]
+    customers = get_all_customers()
     today = get_today_shamsi()
     tomorrow = get_tomorrow_shamsi()
     return render_template("customers.html", 
@@ -147,9 +143,9 @@ def customers_list():
 def search():
     if request.method == "POST":
         query = request.form.get("query", "").strip().lower()
-        db = load_db()
+        customers = get_all_customers()
         results = [
-            c for c in db["customers"]
+            c for c in customers
             if query in c["name"].lower() or
                query in c["phone"] or
                query in c.get("service", "").lower()
@@ -167,9 +163,8 @@ def search():
 @app.route("/today")
 @login_required
 def today_appointments():
-    db = load_db()
     today = get_today_shamsi()
-    customers = [c for c in db["customers"] if c.get("next_appointment") == today]
+    customers = list(customers_collection.find({"next_appointment": today}, {"_id": 0}))
     return render_template("customers.html",
                           customers=customers,
                           title=f"نوبت‌های امروز ({today})",
@@ -180,9 +175,8 @@ def today_appointments():
 @app.route("/tomorrow")
 @login_required
 def tomorrow_appointments():
-    db = load_db()
     tomorrow = get_tomorrow_shamsi()
-    customers = [c for c in db["customers"] if c.get("next_appointment") == tomorrow]
+    customers = list(customers_collection.find({"next_appointment": tomorrow}, {"_id": 0}))
     return render_template("customers.html",
                           customers=customers,
                           title=f"نوبت‌های فردا ({tomorrow})",
@@ -193,11 +187,11 @@ def tomorrow_appointments():
 @app.route("/all_appointments")
 @login_required
 def all_appointments():
-    db = load_db()
     today = get_today_shamsi()
-    customers = [c for c in db["customers"] 
-                if c.get("next_appointment") and c["next_appointment"] >= today]
-    customers.sort(key=lambda x: x["next_appointment"])
+    customers = list(customers_collection.find(
+        {"next_appointment": {"$gte": today}}, 
+        {"_id": 0}
+    ).sort("next_appointment", 1))
     return render_template("customers.html",
                           customers=customers,
                           title="همه نوبت‌های آینده",
@@ -208,8 +202,7 @@ def all_appointments():
 @app.route("/edit/<int:customer_id>", methods=["GET", "POST"])
 @login_required
 def edit_customer(customer_id):
-    db = load_db()
-    customer = next((c for c in db["customers"] if c["id"] == customer_id), None)
+    customer = customers_collection.find_one({"id": customer_id}, {"_id": 0})
     
     if not customer:
         return redirect(url_for("customers_list"))
@@ -235,12 +228,16 @@ def edit_customer(customer_id):
             except:
                 return render_template("edit.html", customer=customer, error="فرمت تاریخ نادرست است!")
         
-        customer["name"] = name
-        customer["phone"] = phone
-        customer["service"] = service
-        customer["next_appointment"] = next_date
-        customer["notes"] = notes
-        save_db(db)
+        customers_collection.update_one(
+            {"id": customer_id},
+            {"$set": {
+                "name": name,
+                "phone": phone,
+                "service": service,
+                "next_appointment": next_date,
+                "notes": notes
+            }}
+        )
         
         return redirect(url_for("customers_list"))
     
@@ -250,17 +247,15 @@ def edit_customer(customer_id):
 @app.route("/delete/<int:customer_id>", methods=["POST"])
 @login_required
 def delete_customer(customer_id):
-    db = load_db()
-    db["customers"] = [c for c in db["customers"] if c["id"] != customer_id]
-    save_db(db)
+    customers_collection.delete_one({"id": customer_id})
     return redirect(url_for("customers_list"))
 
 
 @app.route("/export")
 @login_required
 def export_excel():
-    db = load_db()
-    if not db["customers"]:
+    customers = get_all_customers()
+    if not customers:
         return redirect(url_for("dashboard"))
     
     wb = Workbook()
@@ -271,7 +266,7 @@ def export_excel():
     headers = ["شناسه", "نام و نام خانوادگی", "شماره تلفن", "نوع خدمات", "نوبت بعدی", "یادداشت", "تاریخ ثبت"]
     ws.append(headers)
     
-    for c in db["customers"]:
+    for c in customers:
         ws.append([
             c["id"], c["name"], c["phone"], c["service"],
             c.get("next_appointment") or "—",
