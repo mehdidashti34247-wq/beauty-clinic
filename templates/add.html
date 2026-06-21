@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="header" style="position: relative;">
+    <button class="back-btn" onclick="history.back()">‹</button>
+    <h1>➕ افزودن مشتری</h1>
+</div>
+
+<div class="container">
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    
+    <form method="POST">
+        <div class="card">
+            <div class="input-group">
+                <label>👤 نام و نام خانوادگی</label>
+                <input type="text" name="name" required>
+            </div>
+            
+            <div class="input-group">
+                <label>📱 شماره تلفن</label>
+                <input type="tel" name="phone" placeholder="09121234567" required>
+            </div>
+            
+            <div class="input-group">
+                <label>💉 نوع خدمات</label>
+                <select name="service">
+                    <option>لیزر</option>
+                    <option>تزریق بوتاکس</option>
+                    <option>تزریق ژل</option>
+                    <option>لاغری</option>
+                    <option>مزوتراپی</option>
+                    <option>میکرونیدلینگ</option>
+                    <option>پاکسازی پوست</option>
+                    <option>فیشیال</option>
+                    <option>سایر</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label>📅 تاریخ نوبت بعدی (شمسی)</label>
+                <input type="text" name="next_appointment" placeholder="1403/12/15">
+            </div>
+            
+            <div class="input-group">
+                <label>📝 یادداشت</label>
+                <textarea name="notes" rows="3"></textarea>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-success">💾 ذخیره</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">❌ انصراف</a>
+    </form>
+</div>
+{% endblock %}
