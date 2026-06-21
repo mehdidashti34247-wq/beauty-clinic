@@ -10,7 +10,7 @@ from functools import wraps
 app = Flask(__name__)
 app.secret_key = "beauty_clinic_secret_key_change_me_2024"
 
-PASSWORD = "1234"
+PASSWORD = "12344321"
 
 DB_FILE = "clinic_database.json"
 
