@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="header" style="position: relative;">
+    <button class="back-btn" onclick="history.back()">‹</button>
+    <h1>🔍 جستجو</h1>
+</div>
+
+<div class="container">
+    <div class="card">
+        <form method="POST">
+            <div class="input-group">
+                <label>عبارت جستجو</label>
+                <input type="text" name="query" placeholder="نام، تلفن یا خدمات..." required autofocus>
+            </div>
+            <button type="submit" class="btn btn-primary">🔍 جستجو</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
